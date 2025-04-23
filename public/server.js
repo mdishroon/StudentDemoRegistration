@@ -29,15 +29,63 @@ app.use(express.json());
 
 // Corresponds to: GET /api/students
 // Returns a list of all students in the database to be displayed on the homepage
+//router.get("/students", async (req, res) => {
+//  try {
+//    const students = await sql`SELECT * FROM students`;
+//    res.json(students.rows); // Send the students back to the client as JSON
+//  } catch (err) {
+//    console.error("Error fetching students:", err);
+//    res.status(500).json({ error: "Error fetching students" });
+//  }
+//});
+
+//DEBUGGING DB CONNECTION
 router.get("/students", async (req, res) => {
   try {
-    const students = await sql`SELECT * FROM students`;
-    res.json(students); // Send the students back to the client as JSON
+    console.log("➡️ GET /api/students hit");
+
+    if (!process.env.DATABASE_URL) {
+      console.error("❌ DATABASE_URL is not set!");
+      return res.status(500).json({ error: "Server misconfiguration" });
+    }
+
+    console.log("🧪 Connecting to DB:", process.env.DATABASE_URL.slice(0, 30) + "...");
+
+    const result = await sql`SELECT * FROM students`;
+
+    console.log("✅ DB query successful. Result:", result);
+
+    // If result has a rows property, return that
+    if (result && Array.isArray(result.rows)) {
+      return res.json(result.rows);
+    }
+
+    // If result is already the array
+    if (Array.isArray(result)) {
+      return res.json(result);
+    }
+
+    // If result is something else
+    console.warn("⚠️ Unexpected DB result format:", result);
+    return res.status(500).json({ error: "Unexpected data format from database" });
+
   } catch (err) {
-    console.error("Error fetching students:", err);
+    console.error("🔥 Error fetching students:", err);
     res.status(500).json({ error: "Error fetching students" });
   }
 });
+
+router.get("/test-db", async (req, res) => {
+  try {
+    const result = await sql`SELECT table_name FROM information_schema.tables WHERE table_schema='public'`;
+    res.json(result);
+  } catch (err) {
+    console.error("🔥 Error in test-db:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// debugging ends here
 
 router.get("/demo-slots", async (req, res) => {
   try {
