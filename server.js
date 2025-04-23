@@ -24,7 +24,6 @@ const router = express.Router();
 const sql = neon(process.env.DATABASE_URL);
 
 // Prefix all routes with "/api"
-app.use("/api", router);
 app.use(express.json()); 
 
 // Corresponds to: GET /api/students
@@ -90,7 +89,7 @@ router.get("/demo-slots", async (req, res) => {
 
     // Transform with seat availability info
     const enriched = slots.map(slot => {
-      const isFull = parseInt(slot.current_count, 10) >= parseInt(slot.max_capacity, 10);
+      const isFull = parseInt(slot.current_count, 10) >= parseInt(slot.capacity, 10);
       return {
         ...slot,
         available: !isFull
@@ -99,10 +98,17 @@ router.get("/demo-slots", async (req, res) => {
 
     res.json(enriched);
   } catch (err) {
-    console.error("Error fetching demo slots:", err.essage, err.stack);
+    console.error("Error fetching demo slots:", err.message, err.stack);
     res.status(500).json({ error: "Error fetching demo slots" });
   }
 });
+
+app.use("/api", router);
+
+router.get("/test", (req, res) => {
+  res.send("✅ API is live!");
+});
+
 
 // Corresponds to: POST /api/students
 // Creates a new student in the db and gives a confirmation message
