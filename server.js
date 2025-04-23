@@ -99,10 +99,14 @@ router.get("/demo-slots", async (req, res) => {
 
 // Corresponds to: POST /api/students
 // Creates a new student in the db and gives a confirmation message
+// 🧠 server.js (Updates to enforce seat limits + allow re-registration)
+
+// ... all previous imports and setup remain unchanged
+
+// POST /students route — updated to enforce max 6 per time slot
 router.post("/students", async (req, res) => {
   const form = formidable({ multiples: true });
 
-  // Parse the incoming form
   form.parse(req, async (err, fields, files) => {
     if (err) {
       return res.status(400).json({ error: "Form parsing error" });
@@ -111,37 +115,53 @@ router.post("/students", async (req, res) => {
     try {
       const { fullName, email, studentId, number, projectDescription, demo_slot } = fields;
 
-      // Check if all required fields are present
       if (!fullName || !email || !studentId || !number || !projectDescription || !demo_slot) {
         return res.status(400).json({ error: "Missing required fields" });
       }
 
-      // Regex checks
-      const nameRegex = /^[A-Za-z]+(?:\s[A-Za-z]+)+$/; // First and last name only, letters, separated by space
+      const nameRegex = /^[A-Za-z]+(?:\s[A-Za-z]+)+$/;
       const idRegex = /^\d{8}$/;
       const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
       const phoneRegex = /^\d{3}-\d{3}-\d{4}$/;
 
-      if (!nameRegex.test(fullName)) {
-        return res.status(400).json({ error: "Name must include first and last name using letters only" });
-      }
-      if (!idRegex.test(studentId)) {
-        return res.status(400).json({ error: "Student ID must be exactly 8 digits" });
-      }
-      if (!emailRegex.test(email)) {
-        return res.status(400).json({ error: "Invalid email format" });
-      }
-      if (!phoneRegex.test(number)) {
-        return res.status(400).json({ error: "Phone number must be in the format 999-999-9999" });
+      if (!nameRegex.test(fullName)) return res.status(400).json({ error: "Name must include first and last name using letters only" });
+      if (!idRegex.test(studentId)) return res.status(400).json({ error: "Student ID must be exactly 8 digits" });
+      if (!emailRegex.test(email)) return res.status(400).json({ error: "Invalid email format" });
+      if (!phoneRegex.test(number)) return res.status(400).json({ error: "Phone number must be in the format 999-999-9999" });
+
+      // Check if student already registered
+      const existing = await sql`SELECT * FROM students WHERE student_id = ${studentId}`;
+
+      // Count how many are registered for the selected demo slot
+      const slotCount = await sql`SELECT COUNT(*) FROM students WHERE demo_slot = ${demo_slot}`;
+      const slotLimit = await sql`SELECT max_capacity FROM demo_slots WHERE slot_id = ${demo_slot}`;
+
+      const current = parseInt(slotCount[0].count, 10);
+      const limit = parseInt(slotLimit[0]?.max_capacity || 6, 10); // fallback to 6 if null
+
+      const slotFilled = current >= limit;
+
+      if (!existing.length && slotFilled) {
+        return res.status(400).json({ error: "This time slot is already full. Please choose another." });
       }
 
-     // const demo_slot = `${demoDate} ${demoTime}`;
+      if (existing.length > 0) {
+        // Update registration instead of insert
+        await sql`
+          UPDATE students SET 
+            name = ${fullName}, 
+            email = ${email}, 
+            phone_number = ${number}, 
+            project_name = ${projectDescription}, 
+            demo_slot = ${demo_slot} 
+          WHERE student_id = ${studentId}`;
 
-      // Insert the student into the database
+        return res.status(200).json({ message: "Registration updated." });
+      }
+
       await sql`
         INSERT INTO students (student_id, name, email, phone_number, project_name, demo_slot)
-        VALUES (${studentId}, ${fullName}, ${email}, ${number}, ${projectDescription}, ${demo_slot})
-      `;
+        VALUES (${studentId}, ${fullName}, ${email}, ${number}, ${projectDescription}, ${demo_slot})`;
 
       res.status(201).json({ message: "Student registered successfully" });
     } catch (err) {
