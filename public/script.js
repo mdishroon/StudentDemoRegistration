@@ -27,7 +27,7 @@ async function loadDemoTimeSlots() {
 
         slots.forEach(slot => {
             const option = document.createElement('option');
-            const dateTime = new Date(slot.slot_time);
+            const dateTime = new Date(slot.time);
         
             const date = dateTime.toLocaleDateString('en-US', { 
                 weekday: 'short', 
@@ -40,12 +40,12 @@ async function loadDemoTimeSlots() {
                 minute: '2-digit' 
             });
         
-            const availableSpots = slot.max_capacity - slot.current_count;
+            const availableSpots = slot.capacity - slot.current_count;
             const availabilityText = availableSpots > 0 
                 ? `(${availableSpots} spots available)` 
                 : '(FULL)';
         
-            option.value = slot.slot_id;
+            option.value = slot.id;
             option.text = `${date}, ${time} ${availabilityText}`;
             option.disabled = availableSpots <= 0;
         
