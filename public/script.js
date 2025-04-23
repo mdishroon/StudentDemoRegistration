@@ -26,31 +26,31 @@ async function loadDemoTimeSlots() {
         console.log('Fetched slots:', slots); // Debugging
 
         slots.forEach(slot => {
-            const option = document.createElement('option');
+            const option = document.createElement("option");
             const dateTime = new Date(slot.time);
-        
-            const date = dateTime.toLocaleDateString('en-US', { 
-                weekday: 'short', 
-                month: 'short', 
-                day: 'numeric' 
+          
+            const date = dateTime.toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric'
             });
-        
-            const time = dateTime.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
+          
+            const time = dateTime.toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit'
             });
-        
+          
             const availableSpots = slot.capacity - slot.current_count;
-            const availabilityText = availableSpots > 0 
-                ? `(${availableSpots} spots available)` 
-                : '(FULL)';
-        
+            option.textContent = `${date}, ${time} (${availableSpots} spots available)`;
             option.value = slot.id;
-            option.text = `${date}, ${time} ${availabilityText}`;
-            option.disabled = availableSpots <= 0;
-        
+            option.disabled = !slot.available;
+          
+            if (!slot.available) {
+              option.textContent += " – FULL";
+            }
+          
             demoTimeSelect.appendChild(option);
-        });        
+          });            
 
     } catch (err) {
         console.error('Error loading demo time slots:', err);
