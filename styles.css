@@ -126,15 +126,15 @@ button {
 button:active {
     transform: translateY(1px);
 }
+
 #listBtn {
+    width: 100%;
     position:relative;
     justify-content: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     background-color: #db34a9;
     color: white;
     flex-grow: 2;
-    margin-left: 10px;
-    margin-right: 10px;
 }
 
 #listBtn:hover {
