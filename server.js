@@ -74,26 +74,19 @@ router.get("/students", async (req, res) => {
     res.status(500).json({ error: "Error fetching students" });
   }
 });
-
-router.get("/test-db", async (req, res) => {
-  try {
-    const result = await sql`SELECT table_name FROM information_schema.tables WHERE table_schema='public'`;
-    res.json(result);
-  } catch (err) {
-    console.error("🔥 Error in test-db:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // debugging ends here
+
 // GET /demo-slots — returns available slots with capacity check
 router.get("/demo-slots", async (req, res) => {
   try {
-    const slots = await sql`SELECT ds.slot_id, ds.slot_time, ds.max_capacity, COUNT(s.student_id) AS current_count
-                           FROM demo_slots ds
-                           LEFT JOIN students s ON ds.slot_id = s.demo_slot
-                           GROUP BY ds.slot_id
-                           ORDER BY ds.slot_time ASC`;
+    const slots = await sql`
+      SELECT ds.id, ds.time, ds.capacity, COUNT(s.student_id) AS current_count
+      FROM demo_slots ds
+      LEFT JOIN students s ON ds.id = s.demo_slot_id
+      GROUP BY ds.id, ds.time, ds.capacity
+      ORDER BY ds.time ASC;
+`;
+
 
     // Transform with seat availability info
     const enriched = slots.map(slot => {
@@ -106,7 +99,7 @@ router.get("/demo-slots", async (req, res) => {
 
     res.json(enriched);
   } catch (err) {
-    console.error("Error fetching demo slots:", err);
+    console.error("Error fetching demo slots:", err.essage, err.stack);
     res.status(500).json({ error: "Error fetching demo slots" });
   }
 });
@@ -144,7 +137,7 @@ router.post("/students", async (req, res) => {
 
       // Count how many are registered for the selected demo slot
       const slotCount = await sql`SELECT COUNT(*) FROM students WHERE demo_slot = ${demo_slot}`;
-      const slotLimit = await sql`SELECT max_capacity FROM demo_slots WHERE slot_id = ${demo_slot}`;
+      const slotLimit = await sql`SELECT max_capacity FROM demo_slots WHERE id = ${demo_slot}`;
 
       const current = parseInt(slotCount[0].count, 10);
       const limit = parseInt(slotLimit[0]?.max_capacity || 6, 10); // fallback to 6 if null
