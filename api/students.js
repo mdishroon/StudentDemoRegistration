@@ -94,7 +94,7 @@ export default async function handler(req, res) {
 
         res.status(201).json({ message: "Student registered successfully" });
       } catch (err) {
-        console.error("🔥 FULL POST ERROR:", err.message, err.stack);
+        console.error("POST ERROR:", err.message, err.stack);
         res.status(500).json({ error: "Server error" });
       }
     });

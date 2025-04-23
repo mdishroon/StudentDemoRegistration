@@ -45,15 +45,15 @@ router.get("/students", async (req, res) => {
     console.log("➡️ GET /api/students hit");
 
     if (!process.env.DATABASE_URL) {
-      console.error("❌ DATABASE_URL is not set!");
+      console.error("DATABASE_URL is not set!");
       return res.status(500).json({ error: "Server misconfiguration" });
     }
 
-    console.log("🧪 Connecting to DB:", process.env.DATABASE_URL.slice(0, 30) + "...");
+    console.log("Connecting to DB:", process.env.DATABASE_URL.slice(0, 30) + "...");
 
     const result = await sql`SELECT * FROM students`;
 
-    console.log("✅ DB query successful. Result:", result);
+    console.log("DB query successful. Result:", result);
 
     // If result has a rows property, return that
     if (result && Array.isArray(result.rows)) {

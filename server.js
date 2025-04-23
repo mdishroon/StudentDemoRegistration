@@ -26,25 +26,13 @@ const sql = neon(process.env.DATABASE_URL);
 // Prefix all routes with "/api"
 app.use(express.json()); 
 
-// Corresponds to: GET /api/students
-// Returns a list of all students in the database to be displayed on the homepage
-//router.get("/students", async (req, res) => {
-//  try {
-//    const students = await sql`SELECT * FROM students`;
-//    res.json(students.rows); // Send the students back to the client as JSON
-//  } catch (err) {
-//    console.error("Error fetching students:", err);
-//    res.status(500).json({ error: "Error fetching students" });
-//  }
-//});
-
 //DEBUGGING DB CONNECTION
 router.get("/students", async (req, res) => {
   try {
-    console.log("➡️ GET /api/students hit");
+    console.log("GET /api/students hit");
 
     if (!process.env.DATABASE_URL) {
-      console.error("❌ DATABASE_URL is not set!");
+      console.error("DATABASE_URL is not set!");
       return res.status(500).json({ error: "Server misconfiguration" });
     }
 
@@ -65,7 +53,7 @@ router.get("/students", async (req, res) => {
     }
 
     // If result is something else
-    console.warn("⚠️ Unexpected DB result format:", result);
+    console.warn("Unexpected DB result format:", result);
     return res.status(500).json({ error: "Unexpected data format from database" });
 
   } catch (err) {
@@ -111,8 +99,7 @@ router.get("/test", (req, res) => {
 
 
 // Corresponds to: POST /api/students
-// Creates a new student in the db and gives a confirmation message
-// POST /students route — updated to enforce max 6 per time slot
+// Creates a new student in the db and gives a confirmation message, enforces max 6 per time slot
 router.post("/students", async (req, res) => {
   const form = formidable({ multiples: true });
 
@@ -155,7 +142,7 @@ router.post("/students", async (req, res) => {
       }
 
       if (existing.length > 0) {
-        // Update registration instead of insert
+        // Update registration instead of insert if student already exists
         await sql`
           UPDATE students SET 
             name = ${fullName}, 
