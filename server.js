@@ -86,11 +86,25 @@ router.get("/test-db", async (req, res) => {
 });
 
 // debugging ends here
-
+// GET /demo-slots — returns available slots with capacity check
 router.get("/demo-slots", async (req, res) => {
   try {
-    const demoSlots = await sql`SELECT * FROM demo_slots`; // Replace 'demo_slots' with your actual table name
-    res.json(demoSlots);
+    const slots = await sql`SELECT ds.slot_id, ds.slot_time, ds.max_capacity, COUNT(s.student_id) AS current_count
+                           FROM demo_slots ds
+                           LEFT JOIN students s ON ds.slot_id = s.demo_slot
+                           GROUP BY ds.slot_id
+                           ORDER BY ds.slot_time ASC`;
+
+    // Transform with seat availability info
+    const enriched = slots.map(slot => {
+      const isFull = parseInt(slot.current_count, 10) >= parseInt(slot.max_capacity, 10);
+      return {
+        ...slot,
+        available: !isFull
+      };
+    });
+
+    res.json(enriched);
   } catch (err) {
     console.error("Error fetching demo slots:", err);
     res.status(500).json({ error: "Error fetching demo slots" });
@@ -99,10 +113,6 @@ router.get("/demo-slots", async (req, res) => {
 
 // Corresponds to: POST /api/students
 // Creates a new student in the db and gives a confirmation message
-// 🧠 server.js (Updates to enforce seat limits + allow re-registration)
-
-// ... all previous imports and setup remain unchanged
-
 // POST /students route — updated to enforce max 6 per time slot
 router.post("/students", async (req, res) => {
   const form = formidable({ multiples: true });
