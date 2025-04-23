@@ -54,33 +54,36 @@
             }
     
             // Populate rows
-            students.forEach((student) => {
-              const row = document.createElement("tr");
-              
-              // Format the demo time nicely
-              let demoTimeDisplay = "Not scheduled";
-              if (student.demo_slot_id) {
-                const demoTime = new Date(student.demo_slot_id);
-                demoTimeDisplay = demoTime.toLocaleString('en-US', {
-                  weekday: 'short',
-                  month: 'short', 
-                  day: 'numeric',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                });
-              }
-              
-              row.innerHTML = `
-                <td>${student.student_id}</td>
-                <td>${student.name}</td>
-                <td>${student.project_name}</td>
-                <td>${student.email}</td>
-                <td>${student.phone_number}</td>
-                <td>${demoTimeDisplay}</td>
-              `;
-              tbody.appendChild(row);
-            });
+const getValue = (val) => Array.isArray(val) ? val[0] : val ?? "—";
+
+students.forEach((student) => {
+  const row = document.createElement("tr");
+
+  // Format the demo time nicely
+  let demoTimeDisplay = "Not scheduled";
+  if (student.demo_time) {
+    const demoTime = new Date(student.demo_time);
+    demoTimeDisplay = demoTime.toLocaleString('en-US', {
+      weekday: 'short',
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  row.innerHTML = `
+    <td>${getValue(student.student_id)}</td>
+    <td>${getValue(student.name)}</td>
+    <td>${getValue(student.project_name)}</td>
+    <td>${getValue(student.email)}</td>
+    <td>${getValue(student.phone_number)}</td>
+    <td>${demoTimeDisplay}</td>
+  `;
+  tbody.appendChild(row);
+});
+
           } catch (err) {
             console.error("Error loading student list:", err);
             const tbody = document.getElementById("studentTableBody");
