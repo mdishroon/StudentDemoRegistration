@@ -34,7 +34,8 @@ export default async function handler(req, res) {
 
     form.parse(req, async (err, fields) => {
       if (err) return res.status(400).json({ error: "Form parsing error" });
-
+      // debug line in line 38
+      console.log("Received fields:", fields);
       try {
         const { fullName, email, studentId, number, projectDescription, demoTime } = fields;
 
