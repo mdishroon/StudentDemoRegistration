@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Demo Registration List</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Registered Students</h1>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Student ID</th>
+              <th>Name</th>
+              <th>Project Description</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Demo Time</th>
+            </tr>
+          </thead>
+          <tbody id="studentTableBody">
+            <!-- JavaScript will dynamically populate rows here -->
+            <tr>
+              <td colspan="6">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      
+        <div class="controls">
+          <a href="index.html"><button id="backBtn">← Back to Registration</button></a>
+        </div>
+    </div>
+
+    <script>
+        async function loadStudents() {
+          try {
+            const response = await fetch("/api/students");
+            if (!response.ok) throw new Error("Failed to fetch student data.");
+    
+            const students = await response.json();
+            const tbody = document.getElementById("studentTableBody");
+    
+            // Clear any existing rows
+            tbody.innerHTML = "";
+    
+            if (students.length === 0) {
+              tbody.innerHTML = `<tr><td colspan="6" class="text-center">No students registered yet.</td></tr>`;
+              return;
+            }
+    
+            // Populate rows
+            students.forEach((student) => {
+              const row = document.createElement("tr");
+              
+              // Format the demo time nicely
+              let demoTimeDisplay = "Not scheduled";
+              if (student.demo_slot_id) {
+                const demoTime = new Date(student.demo_slot_id);
+                demoTimeDisplay = demoTime.toLocaleString('en-US', {
+                  weekday: 'short',
+                  month: 'short', 
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                });
+              }
+              
+              row.innerHTML = `
+                <td>${student.student_id}</td>
+                <td>${student.name}</td>
+                <td>${student.project_name}</td>
+                <td>${student.email}</td>
+                <td>${student.phone_number}</td>
+                <td>${demoTimeDisplay}</td>
+              `;
+              tbody.appendChild(row);
+            });
+          } catch (err) {
+            console.error("Error loading student list:", err);
+            const tbody = document.getElementById("studentTableBody");
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center">Unable to load students. Please try again later.</td></tr>`;
+          }
+        }
+    
+        // Load students when the page loads
+        document.addEventListener('DOMContentLoaded', loadStudents);
+      </script>
+</body>
+</html>

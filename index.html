@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Demo Registration</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Student Demo Registration</h1>
+            <p>Register for your upcoming class presentation!</p>
+        </header>
+
+        <div class="regList">
+            <a href="regList.html"> <button id="listBtn">See Registration List</button></a>
+            <a href="https://github.com/mdishroon"><button id="listBtn">Check Out My Github Link!</button></a>
+            <a href="https://canvas.wayne.edu/"><button id="listBtn">Wayne State Canvas</button></a>
+        </div>
+        
+        <form id="registrationForm">
+            <div class="form-group">
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" name="fullName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="studentId">Student ID</label>
+                <input type="text" id="studentId" name="studentId" required>
+            </div>
+
+            <div class="form-group">
+                <label for="number">Phone Number</label>
+                <input type="text" id="number" name="number" required>
+                <small>Format: 999-999-9999</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="course">Course</label>
+                <select id="course" name="course" required>
+                    <option value="">Select a course</option>
+                    <option value="CSC101">CSC1002: Introduction to Programming</option>
+                    <option value="cs201">CSC2001: Data Structures</option>
+                    <option value="cs301">CSC3001: Algorithms</option>
+                    <option value="cs401">CSC4001: Advanced Software Development</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="demoTime">Preferred Time Slot</label>
+                <select id="demoTime" name="demoTime" required>
+                    <option value="">Select a time slot</option>
+                    <!-- Time slots will be loaded dynamically from the database -->
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="projectDescription">Project Description</label>
+                <textarea id="projectDescription" name="projectDescription" rows="4" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="requirements">Special Requirements</label>
+                <textarea id="requirements" name="requirements" rows="2"></textarea>
+            </div>
+            
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="confirmation" name="confirmation" required>
+                <label for="confirmation">I confirm that I am prepared to give my demonstration on the selected date and time</label>
+            </div>
+            
+            <div class="form-buttons">
+                <button type="submit" id="submitBtn">Register</button>
+                <button type="reset" id="resetBtn">Clear Form</button>
+            </div>
+        </form>
+        
+        <div id="confirmationMessage" class="hidden">
+            <h2>Registration Successful!</h2>
+            <p>Your demo has been scheduled. Check your email for confirmation details.</p>
+            <button id="newRegistrationBtn">New Registration</button>
+        </div>
+    </div>
+    <script src="/script.js" defer></script>
+</body>
+</html>

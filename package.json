@@ -1,0 +1,22 @@
+{
+	"name": "vite-express-demo",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "tsx watch --env-file=.env --exclude \"vite.config.*\" server.js",
+		"start": "NODE_ENV=production node server.js",
+		"build": "vite build"
+	},
+	"devDependencies": {
+		"tsx": "^4.19.3",
+		"vite": "^6.2.1"
+	},
+	"dependencies": {
+		"@neondatabase/serverless": "^0.10.4",
+		"@vercel/blob": "^0.27.2",
+		"express": "^4.21.2",
+		"formidable": "^3.5.2",
+		"vite-express": "*"
+	}
+}
