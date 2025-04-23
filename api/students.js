@@ -34,12 +34,14 @@ export default async function handler(req, res) {
 
     form.parse(req, async (err, fields) => {
       if (err) return res.status(400).json({ error: "Form parsing error" });
-      // debug line in line 38
+
       console.log("Received fields:", fields);
+
       try {
         const { fullName, email, studentId, number, projectDescription, demoTime } = fields;
+        const cleanDemoTime = Array.isArray(demoTime) ? demoTime[0] : demoTime;
 
-        if (!fullName || !email || !studentId || !number || !projectDescription || !demoTime) {
+        if (!fullName || !email || !studentId || !number || !projectDescription || !cleanDemoTime) {
           return res.status(400).json({ error: "Missing required fields" });
         }
 
@@ -54,8 +56,8 @@ export default async function handler(req, res) {
         if (!phoneRegex.test(number)) return res.status(400).json({ error: "Phone number must be in the format 999-999-9999" });
 
         const existing = await sql`SELECT * FROM students WHERE student_id = ${studentId}`;
-        const slotCount = await sql`SELECT COUNT(*) FROM students WHERE demo_slot_id = ${demoTime}`;
-        const slotLimit = await sql`SELECT capacity FROM demo_slots WHERE id = ${demoTime}`;
+        const slotCount = await sql`SELECT COUNT(*) FROM students WHERE demo_slot_id = ${cleanDemoTime}`;
+        const slotLimit = await sql`SELECT capacity FROM demo_slots WHERE id = ${cleanDemoTime}`;
 
         const current = parseInt(slotCount[0].count, 10);
         const limit = parseInt(slotLimit[0]?.capacity || 6, 10);
@@ -72,7 +74,7 @@ export default async function handler(req, res) {
               email = ${email},
               phone_number = ${number},
               project_name = ${projectDescription},
-              demo_slot_id = ${demoTime}
+              demo_slot_id = ${cleanDemoTime}
             WHERE student_id = ${studentId}
           `;
           return res.status(200).json({ message: "Registration updated." });
@@ -80,7 +82,7 @@ export default async function handler(req, res) {
 
         await sql`
           INSERT INTO students (student_id, name, email, phone_number, project_name, demo_slot_id)
-          VALUES (${studentId}, ${fullName}, ${email}, ${number}, ${projectDescription}, ${demoTime})
+          VALUES (${studentId}, ${fullName}, ${email}, ${number}, ${projectDescription}, ${cleanDemoTime})
         `;
 
         res.status(201).json({ message: "Student registered successfully" });
