@@ -12,8 +12,19 @@ const sql = neon(process.env.DATABASE_URL);
 export default async function handler(req, res) {
   if (req.method === "GET") {
     try {
-      const students = await sql\`SELECT * FROM students\`;
-      res.status(200).json(students);
+      const result = await sql`
+        SELECT 
+          s.student_id,
+          s.name,
+          s.project_name,
+          s.email,
+          s.phone_number,
+          ds.time AS demo_time
+        FROM students s
+        LEFT JOIN demo_slots ds ON s.demo_slot_id = ds.id
+        ORDER BY ds.time ASC;
+      `;
+      res.status(200).json(result);
     } catch (err) {
       console.error("Error fetching students:", err.message);
       res.status(500).json({ error: "Error fetching students" });
@@ -41,9 +52,9 @@ export default async function handler(req, res) {
         if (!emailRegex.test(email)) return res.status(400).json({ error: "Invalid email format" });
         if (!phoneRegex.test(number)) return res.status(400).json({ error: "Phone number must be in the format 999-999-9999" });
 
-        const existing = await sql\`SELECT * FROM students WHERE student_id = \${studentId}\`;
-        const slotCount = await sql\`SELECT COUNT(*) FROM students WHERE demo_slot_id = \${demoTime}\`;
-        const slotLimit = await sql\`SELECT capacity FROM demo_slots WHERE id = \${demoTime}\`;
+        const existing = await sql`SELECT * FROM students WHERE student_id = ${studentId}`;
+        const slotCount = await sql`SELECT COUNT(*) FROM students WHERE demo_slot_id = ${demoTime}`;
+        const slotLimit = await sql`SELECT capacity FROM demo_slots WHERE id = ${demoTime}`;
 
         const current = parseInt(slotCount[0].count, 10);
         const limit = parseInt(slotLimit[0]?.capacity || 6, 10);
@@ -54,22 +65,22 @@ export default async function handler(req, res) {
         }
 
         if (existing.length > 0) {
-          await sql\`
+          await sql`
             UPDATE students SET
-              name = \${fullName},
-              email = \${email},
-              phone_number = \${number},
-              project_name = \${projectDescription},
-              demo_slot_id = \${demoTime}
-            WHERE student_id = \${studentId}
-          \`;
+              name = ${fullName},
+              email = ${email},
+              phone_number = ${number},
+              project_name = ${projectDescription},
+              demo_slot_id = ${demoTime}
+            WHERE student_id = ${studentId}
+          `;
           return res.status(200).json({ message: "Registration updated." });
         }
 
-        await sql\`
+        await sql`
           INSERT INTO students (student_id, name, email, phone_number, project_name, demo_slot_id)
-          VALUES (\${studentId}, \${fullName}, \${email}, \${number}, \${projectDescription}, \${demoTime})
-        \`;
+          VALUES (${studentId}, ${fullName}, ${email}, ${number}, ${projectDescription}, ${demoTime})
+        `;
 
         res.status(201).json({ message: "Student registered successfully" });
       } catch (err) {

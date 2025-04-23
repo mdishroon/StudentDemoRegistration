@@ -8,13 +8,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const slots = await sql\`
+    const slots = await sql`
       SELECT ds.id, ds.time, ds.capacity, COUNT(s.student_id) AS current_count
       FROM demo_slots ds
       LEFT JOIN students s ON ds.id = s.demo_slot_id
       GROUP BY ds.id, ds.time, ds.capacity
       ORDER BY ds.time ASC;
-    \`;
+    `;
 
     const enriched = slots.map(slot => {
       const isFull = parseInt(slot.current_count, 10) >= parseInt(slot.capacity, 10);
