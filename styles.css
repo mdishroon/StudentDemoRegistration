@@ -171,7 +171,7 @@ button:active {
 }
 
 #newRegistrationBtn {
-    background-color: #2ecc71;
+    background-color: #db34a9;
     color: white;
     padding: 12px 20px;
     margin-top: 20px;
@@ -180,7 +180,7 @@ button:active {
 }
 
 #newRegistrationBtn:hover {
-    background-color: #27ae60;
+    background-color: #b9228c;
 }
 
 /* Confirmation message styles */
@@ -190,7 +190,7 @@ button:active {
 }
 
 #confirmationMessage h2 {
-    color: #2ecc71;
+    color: #cc2eba;
     margin-bottom: 15px;
 }
 
