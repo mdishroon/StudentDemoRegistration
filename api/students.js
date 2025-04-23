@@ -39,9 +39,12 @@ export default async function handler(req, res) {
 
       try {
         const { fullName, email, studentId, number, projectDescription, demoTime } = fields;
-        const cleanDemoTime = Array.isArray(demoTime) ? demoTime[0] : demoTime;
 
-        if (!fullName || !email || !studentId || !number || !projectDescription || !cleanDemoTime) {
+        // Sanitize both values (arrays → strings + trim)
+        const cleanStudentId = Array.isArray(studentId) ? studentId[0].trim() : studentId.trim();
+        const cleanDemoTime = Array.isArray(demoTime) ? demoTime[0].trim() : demoTime.trim();
+
+        if (!fullName || !email || !cleanStudentId || !number || !projectDescription || !cleanDemoTime) {
           return res.status(400).json({ error: "Missing required fields" });
         }
 
@@ -51,11 +54,11 @@ export default async function handler(req, res) {
         const phoneRegex = /^\d{3}-\d{3}-\d{4}$/;
 
         if (!nameRegex.test(fullName)) return res.status(400).json({ error: "Name must include first and last name using letters only" });
-        if (!idRegex.test(studentId)) return res.status(400).json({ error: "Student ID must be exactly 8 digits" });
+        if (!idRegex.test(cleanStudentId)) return res.status(400).json({ error: "Student ID must be exactly 8 digits" });
         if (!emailRegex.test(email)) return res.status(400).json({ error: "Invalid email format" });
         if (!phoneRegex.test(number)) return res.status(400).json({ error: "Phone number must be in the format 999-999-9999" });
 
-        const existing = await sql`SELECT * FROM students WHERE student_id = ${studentId}`;
+        const existing = await sql`SELECT * FROM students WHERE student_id = ${cleanStudentId}`;
         const slotCount = await sql`SELECT COUNT(*) FROM students WHERE demo_slot_id = ${cleanDemoTime}`;
         const slotLimit = await sql`SELECT capacity FROM demo_slots WHERE id = ${cleanDemoTime}`;
 
@@ -75,19 +78,19 @@ export default async function handler(req, res) {
               phone_number = ${number},
               project_name = ${projectDescription},
               demo_slot_id = ${cleanDemoTime}
-            WHERE student_id = ${studentId}
+            WHERE student_id = ${cleanStudentId}
           `;
           return res.status(200).json({ message: "Registration updated." });
         }
 
         await sql`
           INSERT INTO students (student_id, name, email, phone_number, project_name, demo_slot_id)
-          VALUES (${studentId}, ${fullName}, ${email}, ${number}, ${projectDescription}, ${cleanDemoTime})
+          VALUES (${cleanStudentId}, ${fullName}, ${email}, ${number}, ${projectDescription}, ${cleanDemoTime})
         `;
 
         res.status(201).json({ message: "Student registered successfully" });
       } catch (err) {
-        console.error("Error handling POST /students:", err.message);
+        console.error("🔥 FULL POST ERROR:", err.message, err.stack);
         res.status(500).json({ error: "Server error" });
       }
     });
