@@ -40,11 +40,15 @@ export default async function handler(req, res) {
       try {
         const { fullName, email, studentId, number, projectDescription, demoTime } = fields;
 
-        // Sanitize both values (arrays → strings + trim)
+        // Clean ALL the things ✨
         const cleanStudentId = Array.isArray(studentId) ? studentId[0].trim() : studentId.trim();
+        const cleanFullName = Array.isArray(fullName) ? fullName[0].trim() : fullName.trim();
+        const cleanEmail = Array.isArray(email) ? email[0].trim() : email.trim();
+        const cleanNumber = Array.isArray(number) ? number[0].trim() : number.trim();
+        const cleanProjectName = Array.isArray(projectDescription) ? projectDescription[0].trim() : projectDescription.trim();
         const cleanDemoTime = Array.isArray(demoTime) ? demoTime[0].trim() : demoTime.trim();
 
-        if (!fullName || !email || !cleanStudentId || !number || !projectDescription || !cleanDemoTime) {
+        if (!cleanFullName || !cleanEmail || !cleanStudentId || !cleanNumber || !cleanProjectName || !cleanDemoTime) {
           return res.status(400).json({ error: "Missing required fields" });
         }
 
@@ -53,10 +57,10 @@ export default async function handler(req, res) {
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
         const phoneRegex = /^\d{3}-\d{3}-\d{4}$/;
 
-        if (!nameRegex.test(fullName)) return res.status(400).json({ error: "Name must include first and last name using letters only" });
+        if (!nameRegex.test(cleanFullName)) return res.status(400).json({ error: "Name must include first and last name using letters only" });
         if (!idRegex.test(cleanStudentId)) return res.status(400).json({ error: "Student ID must be exactly 8 digits" });
-        if (!emailRegex.test(email)) return res.status(400).json({ error: "Invalid email format" });
-        if (!phoneRegex.test(number)) return res.status(400).json({ error: "Phone number must be in the format 999-999-9999" });
+        if (!emailRegex.test(cleanEmail)) return res.status(400).json({ error: "Invalid email format" });
+        if (!phoneRegex.test(cleanNumber)) return res.status(400).json({ error: "Phone number must be in the format 999-999-9999" });
 
         const existing = await sql`SELECT * FROM students WHERE student_id = ${cleanStudentId}`;
         const slotCount = await sql`SELECT COUNT(*) FROM students WHERE demo_slot_id = ${cleanDemoTime}`;
@@ -73,10 +77,10 @@ export default async function handler(req, res) {
         if (existing.length > 0) {
           await sql`
             UPDATE students SET
-              name = ${fullName},
-              email = ${email},
-              phone_number = ${number},
-              project_name = ${projectDescription},
+              name = ${cleanFullName},
+              email = ${cleanEmail},
+              phone_number = ${cleanNumber},
+              project_name = ${cleanProjectName},
               demo_slot_id = ${cleanDemoTime}
             WHERE student_id = ${cleanStudentId}
           `;
@@ -85,7 +89,7 @@ export default async function handler(req, res) {
 
         await sql`
           INSERT INTO students (student_id, name, email, phone_number, project_name, demo_slot_id)
-          VALUES (${cleanStudentId}, ${fullName}, ${email}, ${number}, ${projectDescription}, ${cleanDemoTime})
+          VALUES (${cleanStudentId}, ${cleanFullName}, ${cleanEmail}, ${cleanNumber}, ${cleanProjectName}, ${cleanDemoTime})
         `;
 
         res.status(201).json({ message: "Student registered successfully" });
